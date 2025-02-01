@@ -1,77 +1,103 @@
-1   import json
-2   import os
-3   import openai
-4   import tweepy
-5   
-6   # OpenAI API Key (Set as an environment variable)
-7   openai.api_key = os.getenv("OPENAI_API_KEY")
-8   
-9   # Twitter API Credentials
-10  TWITTER_API_KEY = os.getenv("TWITTER_API_KEY")
-11  TWITTER_API_SECRET = os.getenv("TWITTER_API_SECRET")
-12  TWITTER_ACCESS_TOKEN = os.getenv("TWITTER_ACCESS_TOKEN")
-13  TWITTER_ACCESS_SECRET = os.getenv("TWITTER_ACCESS_SECRET")
-14  
-15  # Authenticate Twitter API
-16  auth = tweepy.OAuthHandler(TWITTER_API_KEY, TWITTER_API_SECRET)
-17  auth.set_access_token(TWITTER_ACCESS_TOKEN, TWITTER_ACCESS_SECRET)
-18  twitter_api = tweepy.API(auth, wait_on_rate_limit=True)
-19  
-20  def fetch_bible_verse(verse):
-21      """Retrieve and interpret a Bible verse using OpenAI."""
-22      response = openai.Completion.create(
-23          engine="text-davinci-003",
-24          prompt=f"Provide an exegesis and interpretation of the Bible verse: {verse}.",
-25          max_tokens=500
-26      )
-27      return response["choices"][0]["text"].strip()
-28  
-29  def tweet_bible_verse(verse, content):
-30      """Posts a Bible verse with exegesis to Twitter."""
-31      tweet = f"{verse}\n{content}\n#Bible #Christianity"
-32      twitter_api.update_status(tweet[:280])
-33      return "Tweet posted successfully!"
-34  
-35  # Step 1: Refactored `chatbot` function
-36  def chatbot(user_input=None):
-37      """Interactive chatbot for Bible study."""
-38      if user_input is None:
-39          raise ValueError("No user input provided.")
-40  
-41      print("Welcome to SamBibleBot! Type 'exit' to quit.")
-42      
-43      if user_input.lower() == "exit":
-44          print("Goodbye! Keep studying the Word!")
-45          return "Goodbye!"
-46      elif user_input.lower().startswith("verse:"):
-47          verse = user_input.split(":", 1)[1].strip()
-48          content = fetch_bible_verse(verse)
-49          print(f"SamBibleBot: {content}")
-50          return content
-51      elif user_input.lower().startswith("tweet:"):
-52          parts = user_input.split(":", 2)
-53          if len(parts) == 3:
-54              verse = parts[1].strip()
-55              content = parts[2].strip()
-56              result = tweet_bible_verse(verse, content)
-57              print(f"SamBibleBot: {result}")
-58              return result
-59          else:
-60              print("Invalid format. Use 'tweet: verse : content'.")
-61              return "Invalid format."
-62      else:
-63          print("Invalid command. Use 'verse:' or 'tweet:'.")
-64          return "Invalid command."
-65  
-66  # Step 2: Updated `__main__` block
-67  if __name__ == "__main__":
-68      # Replace these test inputs with actual API or dynamic inputs during deployment.
-69      test_inputs = [
-70          "verse: John 3:16",
-71          "tweet: John 3:16 : God's love is amazing.",
-72          "exit"
-73      ]
-74  
-75      for test_input in test_inputs:
-76          response = chatbot(test_input)
-77          print(f"Response: {response}")
+import json
+import os
+import openai
+import tweepy
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+
+# OpenAI API Key (Set as an environment variable)
+openai.api_key = os.getenv("OPENAI_API_KEY")
+
+# Twitter API Credentials
+TWITTER_API_KEY = os.getenv("TWITTER_API_KEY")
+TWITTER_API_SECRET = os.getenv("TWITTER_API_SECRET")
+TWITTER_ACCESS_TOKEN = os.getenv("TWITTER_ACCESS_TOKEN")
+TWITTER_ACCESS_SECRET = os.getenv("TWITTER_ACCESS_SECRET")
+
+# Authenticate Twitter API
+auth = tweepy.OAuthHandler(TWITTER_API_KEY, TWITTER_API_SECRET)
+auth.set_access_token(TWITTER_ACCESS_TOKEN, TWITTER_ACCESS_SECRET)
+twitter_api = tweepy.API(auth, wait_on_rate_limit=True)
+
+def fetch_bible_verse(verse):
+    """Retrieve and interpret a Bible verse using OpenAI."""
+    try:
+        response = openai.Completion.create(
+            engine="text-davinci-003",
+            prompt=f"Provide an exegesis and interpretation of the Bible verse: {verse}.",
+            max_tokens=500
+        )
+        return response["choices"][0]["text"].strip()
+    except Exception as e:
+        logging.error(f"Error fetching Bible verse: {e}")
+        return "Error fetching Bible verse. Please try again later."
+
+def tweet_bible_verse(verse, content):
+    """Posts a Bible verse with exegesis to Twitter."""
+    try:
+        tweet = f"{verse}\n{content}\n#Bible #Christianity"
+        twitter_api.update_status(tweet[:280])
+        return "Tweet posted successfully!"
+    except Exception as e:
+        logging.error(f"Error posting tweet: {e}")
+        return "Error posting tweet. Please try again later."
+
+# Step 1: Refactored 'chatbot' function
+def chatbot(user_input=None):
+    """Interactive chatbot for Bible study."""
+    if user_input is None:
+        raise ValueError("No user input provided.")
+
+    logging.info("Welcome to SamBibleBot! Type 'exit' to quit.")
+
+    try:
+        if user_input.lower() == "exit":
+            logging.info("Goodbye! Keep studying the Word!")
+            return "Goodbye!"
+
+        elif user_input.lower().startswith("verse:"):
+            verse = user_input.split(":", 1)[1].strip()
+            if not verse:
+                return "Please provide a valid Bible verse after 'verse:'."
+            content = fetch_bible_verse(verse)
+            logging.info(f"SamBibleBot: {content}")
+            return content
+
+        elif user_input.lower().startswith("tweet:"):
+            parts = user_input.split(":", 2)
+            if len(parts) >= 3:
+                verse = parts[1].strip()
+                content = parts[2].strip()
+                result = tweet_bible_verse(verse, content)
+                logging.info(f"SamBibleBot: {result}")
+                return result
+            else:
+                return "Invalid format. Use 'tweet: verse : content'."
+
+        else:
+            return "Invalid command. Use 'verse:' or 'tweet:'."
+
+    except Exception as e:
+        logging.error(f"An error occurred in chatbot: {e}")
+        return "An unexpected error occurred. Please try again later."
+
+# Step 2: Updated '__main__' block
+if __name__ == "__main__":
+    # Replace these test inputs with actual API or dynamic inputs during deployment.
+    test_inputs = [
+        "verse: John 3:16",
+        "tweet: John 3:16 : God's love is amazing.",
+        "exit",
+        "verse: ",  # Edge case: empty verse
+        "tweet: Psalm 23:1",  # Edge case: missing content
+        "invalid command",  # Edge case: invalid input
+    ]
+
+    for test_input in test_inputs:
+        logging.info(f"Input: {test_input}")
+        response = chatbot(test_input)
+        logging.info(f"Response: {response}")
+
+
