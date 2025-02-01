@@ -9,17 +9,19 @@ openai_api_key = os.getenv("OPENAI_API_KEY")
 openai.api_key = openai_api_key
 
 def fetch_bible_verse(verse):
-    """
-    Retrieve and interpret a Bible verse using OpenAI.
-    """
-   response = openai.ChatCompletion.create(
-    model="gpt-3.5-turbo",  # Specify gpt-3.5-turbo here
-    messages=[{"role": "user", "content": f"Provide an exegesis of the Bible verse: {verse}"}],
-    max_tokens=500
-)
-
+    """Retrieve and interpret a Bible verse using OpenAI."""
+    response = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo",
+        messages=[
+            {"role": "system", "content": "You are a Bible study assistant."},
+            {"role": "user", "content": f"Provide an exegesis and interpretation of the Bible verse: {verse}."}
+        ],
+        max_tokens=500
     )
-    return response["choices"][0]["text"].strip()
+    return response["choices"][0]["message"]["content"].strip()
+    )
+    return response["choices"][0]["message"]["content"].strip()
+
 
 def chatbot(user_input=None):
     """
