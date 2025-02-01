@@ -12,10 +12,12 @@ def fetch_bible_verse(verse):
     """
     Retrieve and interpret a Bible verse using OpenAI.
     """
-    response = openai.Completion.create(
-        engine="gpt-4",
-        prompt=f"Provide an exegesis and interpretation of the Bible verse: {verse}.",
-        max_tokens=500
+   response = openai.ChatCompletion.create(
+    model="gpt-3.5-turbo",  # Specify gpt-3.5-turbo here
+    messages=[{"role": "user", "content": f"Provide an exegesis of the Bible verse: {verse}"}],
+    max_tokens=500
+)
+
     )
     return response["choices"][0]["text"].strip()
 
