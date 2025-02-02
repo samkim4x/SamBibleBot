@@ -1,16 +1,26 @@
 import openai
+
+from flask import Flask, request, jsonify
 import os
-from flask import Flask
 
 app = Flask(__name__)
 
-@app.route("/")
+@app.route('/')
 def home():
     return "BibleBot is running!"
 
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))  # Default to port 5000
-    app.run(host="0.0.0.0", port=port)
+@app.route('/chat', methods=['POST'])
+def chat():
+    user_input = request.json.get("user_input", "")
+    if not user_input:
+        return jsonify({"error": "No user input provided."}), 400
+    response = chatbot(user_input)
+    return jsonify({"response": response})
+
+if __name__ == '__main__':
+    port = int(os.environ.get('PORT', 5000))  # Default to port 5000 if PORT is not set
+    app.run(host='0.0.0.0', port=port)
+
 
 from dotenv import load_dotenv
 
