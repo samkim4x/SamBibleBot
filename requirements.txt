@@ -1,7 +1,9 @@
 openai==0.27.2
-python-dotenv
+python-dotenv==1.0.0
 Flask==2.2.3
 Werkzeug==2.2.3
+gunicorn==20.1.0
+
 
 
 
