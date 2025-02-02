@@ -1,23 +1,19 @@
-import json
-import os
 import openai
+import os
+from dotenv import load_dotenv
 
-# OpenAI API Key (Set as an environment variable)
-openai_api_key = os.getenv("OPENAI_API_KEY")
-
-# Authenticate OpenAI API
-openai.api_key = openai_api_key
+load_dotenv()
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
 def fetch_bible_verse(verse):
-    """Retrieve and interpret a Bible verse using OpenAI."""
     response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
+        model="gpt-4",
         messages=[
             {"role": "user", "content": f"Explain the Bible verse: {verse}"}
         ],
         max_tokens=500
     )
-    return response["choices"][0]["message"]["content"].strip()
+    return response['choices'][0]['message']['content'].strip()
 
 def chatbot(user_input=None):
     """
