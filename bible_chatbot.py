@@ -13,15 +13,11 @@ def fetch_bible_verse(verse):
     response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
         messages=[
-            {"role": "system", "content": "You are a Bible study assistant."},
-            {"role": "user", "content": f"Provide an exegesis and interpretation of the Bible verse: {verse}."}
+            {"role": "user", "content": f"Explain the Bible verse: {verse}"}
         ],
         max_tokens=500
     )
     return response["choices"][0]["message"]["content"].strip()
-    )
-    return response["choices"][0]["message"]["content"].strip()
-
 
 def chatbot(user_input=None):
     """
